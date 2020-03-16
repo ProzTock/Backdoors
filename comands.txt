@@ -1,0 +1,5 @@
+C:\Users\"Nombre de Usuario"\> activate hacking-P27 (Windows)
+root\kali\Python_Virtual_Environments\hacking-P27\bin\: source activate (Linux)
+pipenv install pyinstaller
+pyinstaller host.py --onefile --noconsole --icon iconfinder_32-windows8_104472.ico
+\dist> python -m SimpleHTTPServer 8080

